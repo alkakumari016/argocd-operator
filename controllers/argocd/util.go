@@ -1348,6 +1348,10 @@ const RemovedLabelsAnnotation = "argocd.argoproj.io/removed-labels"
 
 // calculateRemovedSpecLabels compares old and new ArgoCD specs and returns labels that were removed
 func (r *ReconcileArgoCD) calculateRemovedSpecLabels(oldCR, newCR *argoproj.ArgoCD) map[string]string {
+	// Add nil checks to prevent panic
+	if r == nil || oldCR == nil || newCR == nil {
+		return map[string]string{}
+	}
 	removedLabels := make(map[string]string)
 
 	// Check Server labels
@@ -1378,11 +1382,13 @@ func (r *ReconcileArgoCD) calculateRemovedSpecLabels(oldCR, newCR *argoproj.Argo
 	}
 
 	// Check ApplicationSet labels
-	oldAppSetLabels := oldCR.Spec.ApplicationSet.Labels
-	newAppSetLabels := newCR.Spec.ApplicationSet.Labels
-	for key, value := range oldAppSetLabels {
-		if newAppSetLabels == nil || newAppSetLabels[key] == "" {
-			removedLabels[key] = value
+	if oldCR.Spec.ApplicationSet != nil && newCR.Spec.ApplicationSet != nil {
+		oldAppSetLabels := oldCR.Spec.ApplicationSet.Labels
+		newAppSetLabels := newCR.Spec.ApplicationSet.Labels
+		for key, value := range oldAppSetLabels {
+			if newAppSetLabels == nil || newAppSetLabels[key] == "" {
+				removedLabels[key] = value
+			}
 		}
 	}
 
